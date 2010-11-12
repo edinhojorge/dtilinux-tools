@@ -1,0 +1,22 @@
+
+CURRENT FEATURES
+Copy files from a remote server through scp, and zip them
+
+TODO FEATURES
+
+ask/don't ask for password for each server
+unprivileged user/su - function option
+console option to run
+console option with silent option (useful for batch process)
+internationalization (i18n)
+split GETLOG section conf from others (or not)
+retrive any file from a given input text
+add new sections to config file through a gui
+i18n
+do a better setup.py file.
+
+KNOWN BUGS
+
+1
+when there's 2 or more files in different locations with the same name, the last
+one will override others.

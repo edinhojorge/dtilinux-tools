@@ -142,14 +142,14 @@ def load_config():
         print '[%d]%s' %(i, section)
         options.append(section)
 
-def save_config(section='dummy_section', values):
+def save_config(section='dummy_section', values=[['server','rhostname'],['files','/tmp/file1,/tmp/file2'],['optional_files','/tmp/optional_file1,/tmp/optional_file2']]):
     """TODO method. Save new ou update servers configuration."""
     config = ConfigParser.RawConfigParser()
     config.read(CONFIG_FILE);
 
     config.add_section(section)
 
-    for x,y in values
+    for x,y in values:
         config.set(section, x, y)
 
     with open(CONFIG_FILE, 'wa') as configfile:
@@ -307,7 +307,7 @@ def main():
     print "Running getlog tool"
 
     load_config()
-    wx.PySimpleApp()
+    app=wx.PySimpleApp()
     indexes = show_choices()
     load_user()
     ask_for_password()

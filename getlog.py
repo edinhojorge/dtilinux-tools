@@ -39,14 +39,40 @@ global list_section
 
 #CLASSES
 class CopyAndZip(threading.Thread):
+    """Copy some remote files and Zip the folder.
+
+    CopyAndZip is a class that receive a copy command
+    through its constructor, and after the caller call the
+    start method (see threading.Thread), it runs the command
+    using pexpect and informs the password in a noninteractive
+    mode. Then it zips the directory. The get_copystatus_text
+    method returns a status text of the progress."""
     def __init__ (self, command, dir_to_compress, zip_name):
-      threading.Thread.__init__(self)
-      self.command = command
-      self.dir_to_compress = dir_to_compress
-      self.zip_name = zip_name
-      self.p = None
-      self.copystatus = 0
+        """Initializes the classe and set the attributes.
+        
+        Keyword arguments: 
+        command: SCP command. Feel free to get it off here. It
+                 was used like this because I've already had the
+                 command, and to show the progress bar, I needed
+                 a thread. So, here we are.
+        dir_to_compress: Full path of which dir will be zipped
+        zip_name: Full path of the zip file that will be created
+
+        """
+        threading.Thread.__init__(self)
+        self.command = command
+        self.dir_to_compress = dir_to_compress
+        self.zip_name = zip_name
+        self.p = None
+        self.copystatus = 0
     def run(self):
+        """Process that will run in background.
+
+        Execute the command, send the password and zip the dir where the
+        remote files are supposed to be. While it's doing the process, it
+        changes the copystatus attribute.
+
+        """
         self.copystatus = 0
         self.p=pexpect.spawn(self.command, timeout=None)
         self.p.expect(['password', 'Password', 'user_password', 'user_password'], timeout=None)
@@ -60,9 +86,27 @@ class CopyAndZip(threading.Thread):
         #v2.7 or superior
         #shutil.make_arquive(self.zipName, 'zip', self.dir_to_compress)
     def get_copystatus(self):
+        """Return the status code, 0 to 3.
+
+        0 - 'Preparing to copy'
+        1 - 'Copying remote files'
+        2 - 'Compressing files'
+        3 - 'Files copied'
+        else - 'Please wait'
+
+        """
         return self.copystatus
 
     def get_copystatus_text(self):
+        """Return the status message accordly to copystatus code.
+
+        0 - 'Preparing to copy'
+        1 - 'Copying remote files'
+        2 - 'Compressing files'
+        3 - 'Files copied'
+        else - 'Please wait'
+
+        """
         if self.copystatus == 0:
             return 'Preparing to copy'
         elif self.copystatus == 1:
@@ -74,9 +118,9 @@ class CopyAndZip(threading.Thread):
         else:
             return 'Please wait'
 
-
 #FUNCTIONS/METHODS
 def load_config():
+    """Load the program configurations from a text file using ConfigParser."""
     global config
     global options
     global getlog_config_index
@@ -98,18 +142,34 @@ def load_config():
         print '[%d]%s' %(i, section)
         options.append(section)
 
-def save_config():
+def save_config(section='dummy_section', values):
+    """TODO method. Save new ou update servers configuration."""
     config = ConfigParser.RawConfigParser()
     config.read(CONFIG_FILE);
 
-    config.add_section('Section3')
-    config.set('Section1', 'int', '15')
+    config.add_section(section)
+
+    for x,y in values
+        config.set(section, x, y)
 
     with open(CONFIG_FILE, 'wa') as configfile:
         config.write(configfile)
 
-def get_files(section):
+    load_config()
 
+def get_files(section):
+    """Get files remotely, ask for optional files and shows a progress bar.
+
+    For the section passed as a parameter, it get the config to build the
+    command, and if there is an optional_files tag, it asks if the user
+    wants to get the optional files. After the command is build, it creates
+    a progress bar dialog, pass the command to CopyAndZip class and shows
+    the status of the copy.
+
+    keyword arguments:
+    section: It is the section name found in CONFIG_FILE.
+
+    """
     tempDir = config.get(GETLOG_SECTION, 'tempdir')
     destDir = tempDir + section + '/'
     server = config.get(section, 'server')
@@ -144,6 +204,18 @@ def get_files(section):
     dialog.Destroy()
 
 def truncate_long_names(s, max_size=35, delimiter='/'):
+    """A litle helper to minimize a string, returning /SuperLongS.../Readable
+
+    It shorts the string accordly to max_size and delimiter. When the string
+    is longer than max_size, it tries to reduce to a read the last token
+    identified by delimiter.
+
+    Keyword arguments:
+    s: String to reduce (or not)
+    max_size: Which size should 's' be reduced to. (default=35)
+    delimiter: Which delimiter is being used (default=/)
+
+    """
     if len(s) > max_size:
         tokens = s.split(delimiter)
         s = s[0:max_size - len(tokens[len(tokens) - 1]) - 4] + '...' + delimiter + tokens[len(tokens) - 1]
@@ -151,6 +223,14 @@ def truncate_long_names(s, max_size=35, delimiter='/'):
 
 
 def load_user():
+    """Load user name to connect to remote hosts.
+
+    Load user name to connect to remote hosts. It uses 'default_user' tag
+    from GETLOG section, and if the 'ask_for_user' tag is 'True', then
+    prompt for the user. When it's off, it loads and uses 'default_user'
+    directly.
+
+    """
     global username
     username = config.get(GETLOG_SECTION, "default_user")
 
@@ -167,6 +247,13 @@ def load_user():
         username = 'root'
 
 def show_choices():
+    """Show all the sections in a graphical window for user to choose.
+
+    Show all the sections from the CONFIG_FILE in a graphical window
+    for user to choose. It does not display the GETLOG section, and more
+    than one configuration can be selected.
+
+    """
     dialog = wx.MultiChoiceDialog( None, 'Choose the items to collect logs', 'Get log', options )
 
     if dialog.ShowModal() == wx.ID_CANCEL:
@@ -178,8 +265,14 @@ def show_choices():
     return returnValue
 
 def ask_for_password():
+    """Asks for password to connect to remote hosts.
+
+    As it is not recommended to store passwords, it asks for password to connect
+    to remote hosts. The same password is used for all selected servers.
+
+    """
     global user_password
-    user_password = ''#R94g8ee3H'
+    user_password = ''
     dialog = wx.PasswordEntryDialog(None, 'Input the server password', 'Server password', user_password)
 
     if dialog.ShowModal() == wx.ID_CANCEL:
@@ -190,6 +283,7 @@ def ask_for_password():
     dialog.Destroy()
 
 def show_yesno_dialog(text):
+    """Another helper that shows a Yes/No dialog with the text argument"""
     dialog = wx.MessageDialog(None, text, 'Get log',wx.YES_NO|wx.ICON_QUESTION)
 
     returnValue = False
@@ -203,10 +297,17 @@ def show_yesno_dialog(text):
 
 #MAIN FUNCTION#
 def main():
+    """Main function to follow the standards. It manages the whole thing.
+
+    It loads the config, start an application gui background needs, show the
+    choices for the user, get the password, get the files and zip them. All
+    or almost all using other methods here.
+
+    """
     print "Running getlog tool"
 
     load_config()
-    app = wx.PySimpleApp()
+    wx.PySimpleApp()
     indexes = show_choices()
     load_user()
     ask_for_password()

@@ -20,3 +20,5 @@ dtilinux-tools
 Useful tools to use on linux for system administrators
 
 - getlog: Copy files from a remote server through scp, and zip them
+
+TODO: extend functionality to win

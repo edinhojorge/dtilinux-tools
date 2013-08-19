@@ -22,3 +22,48 @@ Useful tools to use on linux for system administrators
 - getlog: Copy files from a remote server through scp, and zip them
 
 TODO: extend functionality to win
+
+
+Installation:
+
+1) Download as a ZIP
+2) Unzip in a folder of your preference
+3) Edit getlog.conf to indicate servers and files to download. You can also use shell commands.
+4) Run ./getlog.py (if it's not runnable, run chmod +x to make it runnable)
+  Check Dependency session below if you get in trouble.
+5) Done
+
+Dependency:
+
+pexpect and wxPython packages
+
+Dependency on redhat 6
+
+I recently installed it on redhat 6, and had to install the following RPMs:
+- wxBase-2.8.12-1.el6.centos.x86_64.rpm
+- wxGTK-2.8.12-1.el6.centos.x86_64.rpm
+- wxGTK-media-2.8.12-1.el6.centos.x86_64.rpm
+- wxGTK-gl-2.8.12-1.el6.centos.x86_64.rpm
+- wxPython-2.8.12.0-1.el6.x86_64.rpm
+
+
+Troubleshooting:
+
+Error:
+Traceback (most recent call last):
+  File "./getlog.py", line 24, in <module>
+    import pexpect
+ImportError: No module named pexpect
+
+Solution:
+Install pexpect packages
+eg: yum install pexpect
+
+Error:
+Traceback (most recent call last):
+  File "./getlog.py", line 28, in <module>
+    import wx
+ImportError: No module named wx
+
+Solution:
+Install wxPython and dependencies. Check "Dependendy on redhat 6"
